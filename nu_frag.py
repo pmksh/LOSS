@@ -18,7 +18,6 @@ def nu_frag(a, b, flag_r, seed):
 
     while min_heap :
         q = heapq.heappop(min_heap)
-        # print("AAA: ", q)
         x1, y1 = q[1]
         bound = min(a-x1, b-y1)
         for i in range(0, bound):
@@ -74,7 +73,7 @@ def nu_frag(a, b, flag_r, seed):
 def sq_print(squares,a,b):
     save_path =  "batch3/doc5.bmp"
     out = [[[0 for _ in range(3)] for _ in range(b)] for  _ in range(a)]
-    print("filled:")
+    # print("filled:")
     red = 0
     gre = 0
     blu = 0

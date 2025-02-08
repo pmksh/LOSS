@@ -1,10 +1,27 @@
 import numpy as np
 from PIL import Image
-import scipy.fftpack
+import scipy.fftpack as fftp
 import sympy.discrete as disc
 
+def func_fft_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.rfft(block))
+    if x == "H":
+        return np.array(fftp.rfft(block.T)).T
+    if x == "T":
+        return fftp.rfft(fftp.rfft(block.T).T)
 
-def func_block_level(block):
+def func_ifft_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.irfft(block))
+    if x == "H":
+        return np.array(fftp.irfft(block.T)).T
+    if x == "T":
+        return fftp.irfft(fftp.irfft(block.T).T)
+
+def func_block_level(block, params):
     h, w = block.shape
     a = 0
     for x in range(h):
@@ -17,19 +34,109 @@ def func_block_level(block):
 
     return block
 
-def func_dct_2d(block):
-    return scipy.fftpack.dct(scipy.fftpack.dct(block.T, norm='ortho').T, norm='ortho')
+def func_dct_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.dct(block, norm='ortho'))
+    if x == "H":
+        return np.array(fftp.dct(block.T, norm='ortho')).T
+    if x == "T":
+        return fftp.dct(fftp.dct(block.T, norm='ortho').T, norm='ortho')
 
-def func_idct_2d(block):
-    return scipy.fftpack.idct(scipy.fftpack.idct(block.T, norm='ortho').T, norm='ortho')
+def func_idct_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.idct(block, norm='ortho'))
+    if x == "H":
+        return np.array(fftp.idct(block.T, norm='ortho')).T
+    if x == "T":
+        return fftp.idct(fftp.idct(block.T, norm='ortho').T, norm='ortho')
 
-def func_dst_2d(block):
-    return scipy.fftpack.dst(scipy.fftpack.dst(block.T, norm='ortho').T, norm='ortho')
+def func_dst_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.dst(block, norm='ortho'))
+    if x == "H":
+        return np.array(fftp.dst(block.T, norm='ortho')).T
+    if x == "T":
+        return fftp.dst(fftp.dst(block.T, norm='ortho').T, norm='ortho')
 
-def func_idst_2d(block):
-    return scipy.fftpack.idst(scipy.fftpack.idst(block.T, norm='ortho').T, norm='ortho')
+def func_idst_2d(block, params):
+    x = params[0]
+    if x == "V":
+        return np.array(fftp.idst(block, norm='ortho'))
+    if x == "H":
+        return np.array(fftp.idst(block.T, norm='ortho')).T
+    if x == "T":
+        return fftp.idst(fftp.idst(block.T, norm='ortho').T, norm='ortho')
 
-def nuf_func(img_arr, squares, frag, func):
+def func_wht_2d(block, params):
+    h,w = block.shape
+    x = params[0]
+    if x == "V":
+        for i in range(h):
+            temp = block[i,]
+            temp = disc.fwht(temp)
+            block[i,] = temp [0:w]
+    if x == "H":
+        for j in range(w):
+            temp = block[:,j]
+            temp = disc.fwht(temp)
+            block[:,j] = temp [0:h]
+    if x == "T":
+        for i in range(h):
+            temp = block[i,]
+            temp = disc.fwht(temp)
+            block[i,] = temp [0:w]
+        for j in range(w):
+            temp = block[:,j]
+            temp = disc.fwht(temp)
+            block[:,j] = temp [0:h]
+    return block
+
+def func_iwht_2d(block, params):
+    h,w = block.shape
+    x = params[0]
+    if x == "V":
+        for i in range(h):
+            temp = block[i,]
+            temp = disc.ifwht(temp)
+            block[i,] = temp [0:w]
+    if x == "H":
+        for j in range(w):
+            temp = block[:,j]
+            temp = disc.ifwht(temp)
+            block[:,j] = temp [0:h]
+    if x == "T":
+        for j in range(w):
+            temp = block[:,j]
+            temp = disc.ifwht(temp)
+            block[:,j] = temp [0:h]
+        for i in range(h):
+            temp = block[i,]
+            temp = disc.ifwht(temp)
+            block[i,] = temp [0:w]
+    return block
+
+def func_sort(block, params):
+    dir = params[0]
+    h,w = block.shape
+    for x in range(h):
+        if dir == "L":
+            temp = block[x, :]
+            block[x, :] = sorted(temp)
+        if dir == "R":
+            temp = block[x, :]
+            block[x, :] = sorted(temp)[::-1]
+        if dir == "U":
+            temp = block[:, x]
+            block[:, x] = sorted(temp)
+        if dir == "D":
+            temp = block[:, x]
+            block[:, x] = sorted(temp)[::-1]
+    return block
+
+def nuf_func(img_arr, squares, frag,params, func):
     altered = np.zeros_like(img_arr)
 
     for channel in range(3):
@@ -41,119 +148,34 @@ def nuf_func(img_arr, squares, frag, func):
             k = k * frag
 
             block = img_arr[x:x + k, y:y + k, channel]
-            altered[x:x + k, y:y + k, channel] = func(block)
+            altered[x:x + k, y:y + k, channel] = func(block,params)
 
     return  altered
 
+### uf
 
-### soon to be deprecated
+def func_hash(x, params):
+    p = 10009
+    q = 25601
+    return ((p*x)%q)%255
 
-def image_dct_2d(img_arr, frag):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
+def func_invert(x, params):
+    return 255-x
 
-    for channel in range(3):
-        for i in range(0, height, frag):
-            for j in range(0, width, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                block = scipy.fftpack.dct(scipy.fftpack.dct(block.T, norm='ortho').T, norm='ortho')
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
+def func_quad(x, params):
+    return (x**2)/255
 
-def image_idct_2d(img_arr, frag):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
+def func_quant(x, params):
+    quant = params[0]
+    return np.round(x/quant) * quant
 
-
-    for channel in range(3):
-        for i in range(0, height, frag):
-            for j in range(0, width, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                block = scipy.fftpack.idct(scipy.fftpack.idct(block.T, norm='ortho').T, norm='ortho')
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
-
-def image_wht_2d(img_arr, frag):
+def uf_func(img_arr, params, func):
     altered = np.zeros_like(img_arr)
     height, width, _ = img_arr.shape
 
 
     for channel in range(3):
-        for i in range(0, height - frag + 1, frag):
-            for j in range(0, width - frag + 1, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                block = disc.fwht(np.array(disc.fwht(block.T)).T)
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
-
-def image_iwht_2d(img_arr, frag):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
-
-
-    for channel in range(3):
-        for i in range(0, height - frag + 1, frag):
-            for j in range(0, width - frag + 1, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                block = disc.ifwht(np.array(disc.ifwht(block.T)).T)
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
-
-def LL_quantize(img_arr, frag, quant):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
-
-
-    for channel in range(3):
-        for i in range(0, height, frag):
-            for j in range(0, width, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                block = np.round(block / quant) * quant
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
-
-def LL_Block_level(img_arr, frag):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
-
-
-    for channel in range(3):
-        for i in range(0, height - frag + 1, frag):
-            for j in range(0, width - frag + 1, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                a = 0
-                for x in range(frag):
-                    for y in range(frag):
-                        a += block[x,y]
-                a = a / (frag ** 2)
-                for x in range(frag):
-                    for y in range(frag):
-                        block[x, y] = a
-                altered[i:i + frag, j:j + frag, channel] = (block)
-    return altered
-
-def LL_frag_sort(img_arr, frag, dir):
-    altered = np.zeros_like(img_arr)
-    height, width, _ = img_arr.shape
-
-
-    for channel in range(3):
-        for i in range(0, height - frag + 1, frag):
-            for j in range(0, width - frag + 1, frag):
-                block = img_arr[i:i + frag, j:j + frag, channel]
-                a = 0
-                for x in range(frag):
-                    if(dir == "L"):
-                        temp = block[x,:]
-                        block[x,:] = sorted(temp)
-                    if(dir == "R"):
-                        temp = block[x,:]
-                        block[x,:] = sorted(temp)[::-1]
-                    if(dir == "U"):
-                        temp = block[:,x]
-                        block[:,x] = sorted(temp)
-                    if (dir == "D"):
-                        temp = block[:, x]
-                        block[:, x] = sorted(temp)[::-1]
-                altered[i:i + frag, j:j + frag, channel] = (block)
+        for i in range(0, height):
+            for j in range(0, width):
+                altered[i, j, channel] = func(img_arr[i,j,channel], params)
     return altered
