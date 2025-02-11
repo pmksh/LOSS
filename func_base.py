@@ -3,6 +3,25 @@ from PIL import Image
 import scipy.fftpack as fftp
 import sympy.discrete as disc
 
+def func_flip(block, params):
+    x = params[0]
+    h, w = block.shape
+    copy = np.zeros_like(block)
+
+    if x == "V":
+        for i in range(h):
+            for j in range(w):
+                copy[i,j] = block[h-i-1,j]
+    if x == "H":
+        for i in range(h):
+            for j in range(w):
+                copy[i,j] = block[i,w-j-1]
+    if x == "T":
+        copy = block.T
+    
+
+    return copy
+    
 def func_fft_2d(block, params):
     x = params[0]
     if x == "V":

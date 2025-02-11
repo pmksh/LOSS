@@ -33,5 +33,8 @@ regex_dictionary = {
     "squares"   : "squares\\s+<(-?\\d+)>s*",
     "quad"      : "quad\\s*",
     "invert"    : "invert\\s*",
-    "hash"      : "hash\\s*"
+    "hash"      : "hash\\s*",
+
+    "flip"      : "flip\\s+<([HVT])>\\s*",
+    "flip-nu"      : "flip\\s+-nu\\s+<([HVT])>\\s*"
 }

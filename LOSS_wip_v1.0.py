@@ -407,6 +407,30 @@ def inp_hash(x):
     current_image = fb.uf_func(current_image, None, fb.func_hash)
     return
 
+def inp_flip(x, flag_nu):
+    global current_image
+    global squares
+    global loaded
+    global squares_loaded
+    global frag
+    global squares_loaded
+
+    if not loaded:
+        print("<< please load an image >>")
+        return
+    if not frag_loaded:
+        print("<< please choose fragmentation >>")
+        return
+    if flag_nu:
+        if not squares_loaded:
+            print("<< please choose squares >>")
+            return
+        current_image = fb.nuf_func(current_image, squares, frag, [x.group(1)], fb.func_flip)
+        return
+    if not flag_nu:
+        current_image = fb.nuf_func(current_image, frag_squares, frag, [x.group(1)], fb.func_flip)
+        return
+
 
 def single_matcher(s, reg):
     return re.fullmatch(rd.regex_dictionary.get(reg), s)
@@ -478,6 +502,12 @@ def case_matcher(s):
     if single_matcher(s, "hash") is not None:
         return "hash", single_matcher(s, "hash")
 
+    
+    if single_matcher(s, "flip") is not None:
+        return "flip", single_matcher(s, "flip")
+    if single_matcher(s, "flip-nu") is not None:
+        return "flip-nu", single_matcher(s, "flip-nu")
+    
     return "None", None
 
 if __name__ == "__main__":
@@ -561,6 +591,11 @@ if __name__ == "__main__":
             inp_sort(x, False)
         elif r == "sort-nu":
             inp_sort(x, True)
+
+        elif r == "flip":
+            inp_flip(x, False)
+        elif r == "flip-nu":
+            inp_flip(x, True)
 
         else:
             print("<< huh? >>")
